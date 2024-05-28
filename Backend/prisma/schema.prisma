@@ -23,5 +23,7 @@ model User {
   username      String   @unique
   email         String   @unique
   phoneNumber   String
+  role          String
+  
 }
 
