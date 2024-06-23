@@ -1,19 +1,17 @@
-const router = require("express").Router();
+import express from "express";
+import { authUser, deleteUser, getUserById, getUsers, registerUser, updateUser } from "../controllers/userController.js";
+import { protectUser } from "../middleware/authMiddleware.js";
 
-const { authJwt } = require("../middlewares");
 
-module.exports = (app) => {
-  app.use(function (req, res, next) {
-    res.header(
-      "Access-Control-Allow-Headers",
-      "x-access-token, Origin, Content-Type, Accept"
-    );
 
-    next();
-  });
+const router = new express.Router();
 
-  router.post("/login", usersController.login)
-  router.post("/signup", [authJwt.verifyToken], usersController.signup);
+router.post("/login", authUser);
+router.post("/", registerUser);
+router.get("/all", protectUser, getUsers);
+router.get("/get/:id", protectUser, getUserById);
+router.put("/update/:id", protectUser, updateUser);
+router.delete("/delete/:id", protectUser, deleteUser);
 
-  app.use(router);
-};
+
+export default router;

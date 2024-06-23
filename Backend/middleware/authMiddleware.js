@@ -1,29 +1,36 @@
-const jwt = require("jsonwebtoken");
-const db = require("../models");
-const Users = db.users;
-// const {sequelize} = require("../models")
+import jwt from 'jsonwebtoken';
+import asyncHandler from './asyncHandler.js';
+import User from '../models/userModel.js';
 
-verifyToken = async (req, res, next) => {
-  const { authorization } = req.headers;
-  try {
-    if (!authorization) {
-      throw new Error("Authorization header not provided");
+
+// User must be authenticated
+const protectUser = asyncHandler(async (req, res, next) => {
+  let token;
+
+  // Read JWT from the 'jwt' cookie
+  token = req.cookies.jwt;
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.userId).select('-password');
+
+      console.log(decoded.userId, 'decoded userid')
+      console.log(req.user, 'requser')
+
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(404).json({error: true, message: 'Not authorized, token failed!'});
+      // throw new Error('Not authorized, token failed');
     }
-
-    const token = authorization.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
-
-    // if(decoded.exp)
-    // req.user = await User.findById(decoded._id);
-    const user = await Users.findByPk(decoded.id);
-    // console.log("User found:", user);
-    req.token = token;
-    req.user = user;
-    next();
-  } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Unauthorized - Token expired' });
-    }
-    return next(err);
+  } else {
+    res.status(404).json({error: true, message: 'Not authorized, no token!'});
+    // throw new Error('Not authorized, no token');
   }
-};
+});
+
+
+
+
+export { protectUser };
