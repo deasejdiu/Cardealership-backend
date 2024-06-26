@@ -55,10 +55,3 @@ if (process.env.NODE_ENV === "production") {
         res.send("API is running....");
     });
 }
-
-
-
-
-
-
-app.listen(port, () => console.log(`server running on port ${port}`));
